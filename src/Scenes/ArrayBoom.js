@@ -46,6 +46,9 @@ class ArrayBoom extends Phaser.Scene {
     create() {
         let my = this.my;
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //SPRITES
+
         my.sprite.elephant = this.add.sprite(game.config.width/2, game.config.height - 40, "elephant");
         my.sprite.elephant.setScale(0.25);
 
@@ -53,8 +56,13 @@ class ArrayBoom extends Phaser.Scene {
         my.sprite.hippo.setScale(0.25);
         my.sprite.hippo.scorePoints = 25;
 
-        // Notice that in this approach, we don't create any bullet sprites in create(),
-        // and instead wait until we need them, based on the number of space bar presses
+                                                                    //SPRITES END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //ANIMATIONS
 
         // Create white puff animation
         this.anims.create({
@@ -65,23 +73,38 @@ class ArrayBoom extends Phaser.Scene {
                 { key: "whitePuff02" },
                 { key: "whitePuff03" },
             ],
-            frameRate: 20,    // Note: case sensitive (thank you Ivy!)
-            repeat: 5,
+            frameRate: 20,
+            repeat: 1,
+            lifeSpan: 1,
             hideOnComplete: true
         });
+
+                                                                    //ANIMATIONS END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //KEY OBJECTS
 
         // Create key objects
         this.left = this.input.keyboard.addKey("A");
         this.right = this.input.keyboard.addKey("D");
-        this.nextScene = this.input.keyboard.addKey("S");
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+                                                                    //KEY OBJECTS END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         // Set movement speeds (in pixels/tick)
-        this.playerSpeed = 5;
-        this.bulletSpeed = 5;
+        this.playerSpeed = 15;
+        this.bulletSpeed = 35;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //TEXT
 
         // update HTML description
-        document.getElementById('description').innerHTML = '<h2>Array Boom.js</h2><br>A: left // D: right // Space: fire/emit // S: Next Scene'
+        document.getElementById('description').innerHTML = '<h2>Array Boom.js</h2><br>A: left // D: right // Space: fire/emit'
 
         // Put score on screen
         my.text.score = this.add.bitmapText(580, 0, "rocketSquare", "Score " + this.myScore);
@@ -95,10 +118,16 @@ class ArrayBoom extends Phaser.Scene {
             }
         });
 
+                                                                    //TEXT END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
     update() {
         let my = this.my;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //MOVEMENT
 
         // Moving left
         if (this.left.isDown) {
@@ -116,6 +145,13 @@ class ArrayBoom extends Phaser.Scene {
             }
         }
 
+                                                                    //MOVEMENT END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //SHOOTING
         // Check for bullet being fired
         if (Phaser.Input.Keyboard.JustDown(this.space)) {
             // Are we under our bullet quota?
@@ -125,6 +161,14 @@ class ArrayBoom extends Phaser.Scene {
                 );
             }
         }
+
+                                                                    //SHOOTING END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //COLLISIONS
 
         // Remove all of the bullets which are offscreen
         // filter() goes through all of the elements of the array, and
@@ -152,7 +196,7 @@ class ArrayBoom extends Phaser.Scene {
                 this.updateScore();
                 // Play sound
                 this.sound.play("dadada", {
-                    volume: 1   // Can adjust volume using this, goes from 0 to 1
+                    volume: 0.25
                 });
                 // Have new hippo appear after end of animation
                 this.puff.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -163,13 +207,12 @@ class ArrayBoom extends Phaser.Scene {
             }
         }
 
+                                                                    //COLLISIONS END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         // Make all of the bullets move
         for (let bullet of my.sprite.bullet) {
             bullet.y -= this.bulletSpeed;
-        }
-
-        if (Phaser.Input.Keyboard.JustDown(this.nextScene)) {
-            this.scene.start("fixedArrayBullet");
         }
 
     }
