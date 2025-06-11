@@ -43,8 +43,51 @@ class ArrayBoom extends Phaser.Scene {
         this.load.audio("dadada", "jingles_NES13.ogg");
     }
 
+    addPoint(point) {
+        let i = 0;
+            for (this.point in this.points) {
+                this.curve.points[i] = point;
+                i++;
+            }
+    }
+
+
     create() {
         let my = this.my;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                                                    //INIT
+
+            // Path points
+        this.points = [
+            20, 20,
+            80, 400,
+            300, 750
+        ];
+
+            // Create spline curve
+        this.curve = new Phaser.Curves.Spline(this.points);
+
+            // Phaser graphics
+        this.graphics = this.add.graphics();
+
+
+        let followConfig = {
+            from: 0,
+            to: 1,
+            delay: 0,
+            duration: 2000,
+            ease: 'Sine.easeInOut',
+            repeat: -1,
+            yoyo: true,
+            rotateToPath: true,
+            rotationOffset: -90
+        }
+
+                                                                    //INIT END
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                     //SPRITES
@@ -52,9 +95,10 @@ class ArrayBoom extends Phaser.Scene {
         my.sprite.elephant = this.add.sprite(game.config.width/2, game.config.height - 40, "elephant");
         my.sprite.elephant.setScale(0.25);
 
-        my.sprite.hippo = this.add.sprite(game.config.width/2, 80, "hippo");
+        my.sprite.hippo = this.add.follower(this.curve, game.config.width/2, 80, "hippo");
         my.sprite.hippo.setScale(0.25);
         my.sprite.hippo.scorePoints = 25;
+
 
                                                                     //SPRITES END
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +164,14 @@ class ArrayBoom extends Phaser.Scene {
 
                                                                     //TEXT END
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        this.addPoint();
     }
+
+
+
+
+
+    
 
     update() {
         let my = this.my;
@@ -196,7 +247,7 @@ class ArrayBoom extends Phaser.Scene {
                 this.updateScore();
                 // Play sound
                 this.sound.play("dadada", {
-                    volume: 0.25
+                    volume: 0.20
                 });
                 // Have new hippo appear after end of animation
                 this.puff.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
@@ -209,6 +260,21 @@ class ArrayBoom extends Phaser.Scene {
 
                                                                     //COLLISIONS END
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                        console.log("Outside curvepoints");
+        if (this.curve.points[0]) {
+            my.sprite.hippo.x = this.curve.points[0].x;
+            my.sprite.hippo.y = this.curve.points[0].y;
+        } else {
+                        console.log("No curve points");
+            my.sprite.hippo.x = 0;
+            my.sprite.hippo.y = 0;
+        }
+
+        
+        my.sprite.hippo.startFollow(followConfig);
+
+
+
 
         // Make all of the bullets move
         for (let bullet of my.sprite.bullet) {
