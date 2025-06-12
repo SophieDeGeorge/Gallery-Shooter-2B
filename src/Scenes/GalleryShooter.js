@@ -1,6 +1,6 @@
-class ArrayBoom extends Phaser.Scene {
+class GalleryShooter extends Phaser.Scene {
     constructor() {
-        super("arrayBoom");
+        super("galleryShooter");
 
         // Initialize a class variable "my" which is an object.
         // The object has two properties, both of which are objects
