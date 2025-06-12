@@ -27,6 +27,7 @@ class ArrayBoom extends Phaser.Scene {
         this.load.image("elephant", "elephant.png");
         this.load.image("heart", "heart.png");
         this.load.image("hippo", "hippo.png");
+        this.load.image("giraffe", "giraffe.png");
 
         // For animation
         this.load.image("whitePuff00", "whitePuff00.png");
@@ -64,28 +65,88 @@ class ArrayBoom extends Phaser.Scene {
             700, 700
         ];
 
+        this.hippo2Points = [
+            20, 20,
+            750, 100,
+            20, 200,
+            750, 300,
+            20, 400,
+            700, 700
+        ];
+
+        this.hippo3Points = [
+            20, 20,
+            750, 100,
+            20, 200,
+            750, 300,
+            20, 400,
+            700, 700
+        ];
+
+
+        this.giraffePoints = [
+            20, 20,
+            100, 800,
+            300, 20,
+            400, 800,
+            600, 20,
+            700, 800,
+            900, 20
+
+        ]; 
+
+
             // Create spline curve
         this.curve = new Phaser.Curves.Spline(this.hippo1Points);
+
+        this.giraffeCurve = new Phaser.Curves.Spline(this.giraffePoints);
 
             // Phaser graphics
         this.graphics = this.add.graphics();
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+            // Hippo 1 variables
+        this.hippo1ShootTimer = 10000;
+        this.hippo1ShootTime = 10000;
+        this.hippo1dead = false;
+        this.hippo1Spawned = false;
+
+            // Hippo 2 variables
+        this.hippo2ShootTimer = 13000;
+        this.hippo2ShootTime = 10000;
+        this.hippo2dead = false;
+        this.hippo2Spawned = false;
+
+            // Hippo 3 variables
+        this.hippo3ShootTimer = 15000;
+        this.hippo3ShootTime = 10000;
+        this.hippo3dead = false;
+        this.hippo3Spawned = false;
+
+
+        this.giraffeDead = false;
+        this.giraffeSpawned = false;
+        
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+        this.canSpawnGiraffe = false;
+        this.canSpawnHippo = true;
+        this.spawnDelayTime = 2000;
+        this.spawnDelay = this.spawnDelayTime;
 
         this.lives = 3;
         this.playerHit = false;
         this.iFrames = 2000;
-        this.invincibilityTimer = 0;
+        this.invincibilityTimer = this.iFrames;
 
-        this.hippo1ShootTimer = 10000;
-        this.hippo1ShootTime = 10000;
-
-        this.hippo1dead = false;
 
         
         this.resetTime = 20000;
         this.resetTimer = this.resetTime;
         this.lost = false;
-        this.hippoWaves = 1;
+        this.hippoWaves = 3;
 
                                                                     //INIT END
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,9 +159,25 @@ class ArrayBoom extends Phaser.Scene {
         my.sprite.elephant = this.add.sprite(game.config.width/2, game.config.height - 40, "elephant");
         my.sprite.elephant.setScale(0.25);
 
-        this.hippo1 = this.add.follower(this.curve, game.config.width/2, 80, "hippo");
+        this.hippo1 = this.add.follower(this.curve, -100, 80, "hippo");
         this.hippo1.setScale(0.25);
         this.hippo1.scorePoints = 25;
+        this.hippo1.visible = false;
+
+        this.hippo2 = this.add.follower(this.curve, -100, 80, "hippo");
+        this.hippo2.setScale(0.25);
+        this.hippo2.scorePoints = 25;
+        this.hippo2.visible = false;
+
+        this.hippo3 = this.add.follower(this.curve, -100, 80, "hippo");
+        this.hippo3.setScale(0.25);
+        this.hippo3.scorePoints = 25;
+        this.hippo3.visible = false;
+
+        this.giraffe = this.add.follower(this.giraffeCurve, -100, 80, "giraffe");
+        this.giraffe.setScale(0.25);
+        this.giraffe.scorePoints = 50;
+        this.giraffe.visible = false;
         
 
 
@@ -154,14 +231,14 @@ class ArrayBoom extends Phaser.Scene {
                                                                     //TEXT
 
         // update HTML description
-        document.getElementById('description').innerHTML = '<h2>Array Boom.js</h2><br>A: left // D: right // Space: fire/emit'
+        document.getElementById('description').innerHTML = '<br>A: left // D: right // Space: shoot'
 
         // Put score on screen
         my.text.score = this.add.bitmapText(580, 0, "rocketSquare", "Score " + this.myScore);
         my.text.lives = this.add.bitmapText(580, 30, "rocketSquare", "Lives " + this.lives);
 
         // Put title on screen
-        this.add.text(10, 5, "Hippo Hug!", {
+        this.add.text(5, 5, "Elephant Cupid", {
             fontFamily: 'Times, serif',
             fontSize: 24,
             wordWrap: {
@@ -179,7 +256,23 @@ class ArrayBoom extends Phaser.Scene {
     update(time, delta) {
         let my = this.my;
         //console.log(this.hippo1ShootTimera);
+        if ((this.hippo1dead == true) && (this.hippo2dead == true) && (this.hippo3dead == true) && (this.canSpawnGiraffe == false)) {
+            this.canSpawnGiraffe = true;
+            this.spawnDelay = this.spawnDelayTime;
+        }
         this.hippo1ShootTimer -= delta * 3;
+        this.hippo2ShootTimer -= delta * 3;
+        this.hippo3ShootTimer -= delta * 3;
+
+        if ((this.hippoWaves > 0) || (this.giraffeSpawned == false)) {
+            this.spawnDelay -= delta * 3;
+            if (this.spawnDelay < 0) {
+                this.canSpawnHippo = true;
+                if ((this.hippo1dead == true) && (this.hippo2dead == true) && (this.hippo3dead == true)) {
+                    this.canSpawnGiraffe = true;
+                }
+            }
+        }
         if (this.lost == true) {
             this.resetTimer -= delta * 3;
         }
@@ -190,6 +283,20 @@ class ArrayBoom extends Phaser.Scene {
             this.hippo1.stopFollow();
             this.hippo1.y = -100;
             this.hippo1dead;
+        }
+        if (this.hippo2dead == true) {
+            this.hippo2.stopFollow();
+            this.hippo2.y = -100;
+            this.hippo2dead;
+        }
+        if (this.hippo3dead == true) {
+            this.hippo3.stopFollow();
+            this.hippo3.y = -100;
+            this.hippo3dead;
+        }
+        if (this.giraffeDead == true) {
+            this.giraffe.stopFollow();
+            this.giraffe.y = -100;
         }
         if (this.playerHit == true) {
             this.invincibilityTimer -= delta * 3;
@@ -236,12 +343,28 @@ class ArrayBoom extends Phaser.Scene {
 
 //
             //enemy shooting
-        if (this.hippo1ShootTimer <= 0) {
+        if ((this.hippo1ShootTimer <= 0) && (this.hippo1.visible == true)) {
             // Are we under our bullet quota?
             if (my.sprite.enemyBullet.length < this.maxenemyBullets) {
                 my.sprite.enemyBullet.push(this.add.sprite(this.hippo1.x, this.hippo1.y-(this.hippo1.displayHeight/2), "heart"));
                 console.log(this.hippo1ShootTimer);
                 this.hippo1ShootTimer = this.hippo1ShootTime;
+            }
+        }
+        if ((this.hippo2ShootTimer <= 0) && (this.hippo2.visible == true)) {
+            // Are we under our bullet quota?
+            if (my.sprite.enemyBullet.length < this.maxenemyBullets) {
+                my.sprite.enemyBullet.push(this.add.sprite(this.hippo2.x, this.hippo2.y-(this.hippo2.displayHeight/2), "heart"));
+                console.log(this.hippo2ShootTimer);
+                this.hippo2ShootTimer = this.hippo2ShootTime;
+            }
+        }
+        if ((this.hippo3ShootTimer <= 0) && (this.hippo3.visible == true)) {
+            // Are we under our bullet quota?
+            if (my.sprite.enemyBullet.length < this.maxenemyBullets) {
+                my.sprite.enemyBullet.push(this.add.sprite(this.hippo3.x, this.hippo3.y-(this.hippo3.displayHeight/2), "heart"));
+                console.log(this.hippo3ShootTimer);
+                this.hippo3ShootTimer = this.hippo3ShootTime;
             }
         }
 //
@@ -274,38 +397,83 @@ class ArrayBoom extends Phaser.Scene {
                     volume: 0.20
                 }); 
                 this.hippo1dead = true;
-                // Have new hippo appear after end of animation
-                /*
-                this.puff.on(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-                    this.hippo1.visible = true;
-                    this.hippo1.x = Math.random()*config.width;
-                }, this); */
+            }
 
+            if (this.collides(this.hippo2, bullet)) {
+                // start animation
+                this.puff = this.add.sprite(this.hippo2.x, this.hippo2.y, "whitePuff03").setScale(0.25).play("puff");
+                // clear out bullet -- put y offscreen, will get reaped next update
+                bullet.y = -100;
+                //this.hippo2.visible = false;
+                this.hippo2.y = -100;
+                // Update score
+                this.myScore += this.hippo2.scorePoints;
+                this.updateScore();
+                // Play sound
+                this.sound.play("dadada", {
+                    volume: 0.20
+                }); 
+                this.hippo2dead = true;
+            }
+
+            if (this.collides(this.hippo3, bullet)) {
+                // start animation
+                this.puff = this.add.sprite(this.hippo3.x, this.hippo3.y, "whitePuff03").setScale(0.25).play("puff");
+                // clear out bullet -- put y offscreen, will get reaped next update
+                bullet.y = -100;
+                //this.hippo3.visible = false;
+                this.hippo3.y = -100;
+                // Update score
+                this.myScore += this.hippo3.scorePoints;
+                this.updateScore();
+                // Play sound
+                this.sound.play("dadada", {
+                    volume: 0.20
+                }); 
+                this.hippo3dead = true;
+            }
+
+            if (this.collides(this.giraffe, bullet)) {
+                // start animation
+                this.puff = this.add.sprite(this.giraffe.x, this.giraffe.y, "whitePuff03").setScale(0.25).play("puff");
+                // clear out bullet -- put y offscreen, will get reaped next update
+                bullet.y = -100;
+                //this.hippo1.visible = false;
+                this.giraffe.y = -100;
+                // Update score
+                this.myScore += this.giraffe.scorePoints;
+                this.updateScore();
+                // Play sound
+                this.sound.play("dadada", {
+                    volume: 0.20
+                }); 
+                this.giraffeDead = true;
+                this.youWon();
             }
         }
 
         // collision check bullet-player
         for (let enemyBullet of my.sprite.enemyBullet) {
-            if (this.collides(my.sprite.elephant, enemyBullet)) {
+            if (this.collides(my.sprite.elephant, enemyBullet) && (this.playerHit == false)) {
                 // start animation
                 this.puff = this.add.sprite(my.sprite.elephant.x, my.sprite.elephant.y, "whitePuff03").setScale(0.25).play("puff");
                 // clear out bullet -- put y offscreen, will get reaped next update
                 enemyBullet.y = -1000;
-                this.lives--;
+                
+                //this.invincibilityTimer = this.iFrames;
                 this.updateLives();
                 // Play sound
                 this.sound.play("dadada", {
                     volume: 0.20
                 }); 
+                
 
             }
         }
 
         // check for player-hippo collision
         
-            if (this.collides(this.hippo1, my.sprite.elephant) && (this.invincibilityTimer <= 0)) {
-                this.playerHit = true;
-                this.invincibilityTimer = this.iFrames;
+            if (this.collides(this.hippo1, my.sprite.elephant) && (this.playerHit == false)) {
                 this.puff = this.add.sprite(this.hippo1.x, this.hippo1.y, "whitePuff03").setScale(0.25).play("puff");
                 this.hippo1.stopFollow();
                 console.log("stopfollow");
@@ -315,7 +483,55 @@ class ArrayBoom extends Phaser.Scene {
                 
                     // Update Lives
                 
-                this.lives -= 1;
+                this.updateLives();
+                this.sound.play("dadada", {
+                    volume: 0.20
+                });
+            }
+
+            if (this.collides(this.hippo2, my.sprite.elephant) && (this.playerHit == false)) {
+                this.puff = this.add.sprite(this.hippo2.x, this.hippo2.y, "whitePuff03").setScale(0.25).play("puff");
+                this.hippo2.stopFollow();
+                console.log("stopfollow");
+                this.hippo2.x = -100;
+                console.log("move hippo");
+                this.hippo2dead = true;
+                
+                    // Update Lives
+                
+                this.updateLives();
+                this.sound.play("dadada", {
+                    volume: 0.20
+                });
+            }
+
+            if (this.collides(this.hippo3, my.sprite.elephant) && (this.playerHit == false)) {
+                this.puff = this.add.sprite(this.hippo3.x, this.hippo3.y, "whitePuff03").setScale(0.25).play("puff");
+                this.hippo3.stopFollow();
+                console.log("stopfollow");
+                this.hippo3.x = -100;
+                console.log("move hippo");
+                this.hippo3dead = true;
+                
+                    // Update Lives
+            
+                this.updateLives();
+                this.sound.play("dadada", {
+                    volume: 0.20
+                });
+            }
+
+            if (this.collides(this.giraffe, my.sprite.elephant) && (this.playerHit == false)) {
+                this.puff = this.add.sprite(this.giraffe.x, this.giraffe.y, "whitePuff03").setScale(0.25).play("puff");
+                this.giraffe.stopFollow();
+                console.log("stopfollow");
+                this.giraffe.x = -100;
+                console.log("move hippo");
+                this.giraffeDead = true;
+                this.youWon();
+                
+                    // Update Lives
+                
                 this.updateLives();
                 this.sound.play("dadada", {
                     volume: 0.20
@@ -327,13 +543,13 @@ class ArrayBoom extends Phaser.Scene {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-        if (this.hippoWaves > 0) {
-                        console.log("Outside curvepoints");
+        if ((this.hippoWaves > 0) && (this.hippo1Spawned == false)) {
+                           
             if (this.curve.points[0]) {
                 this.hippo1.x = this.curve.points[0].x;
                 this.hippo1.y = this.curve.points[0].y;
             } else {
-                            console.log("No curve points");
+                              
                 this.hippo1.x = 0;
                 this.hippo1.y = 0;
             }
@@ -349,10 +565,136 @@ class ArrayBoom extends Phaser.Scene {
                 rotateToPath: true,
                 rotationOffset: -90
             }
-            console.log("config");
+             
             if (this.hippo1dead == false) {
                 this.hippoWaves--;
                 this.hippo1.startFollow(this.followConfig);
+                this.hippo1.visible = true;
+                this.spawnDelay = this.spawnDelayTime;
+                this.canSpawnHippo = false;
+                this.hippo1Spawned = true;
+                console.log("this.hippoWaves " + this.hippoWaves)
+                console.log("this.spawnDelay " + this.spawnDelay)
+            }
+        }
+
+        if ((this.hippoWaves > 0) && (this.canSpawnHippo == true) && (this.hippo2Spawned == false)) {
+                           
+            if (this.curve.points[0]) {
+                this.hippo2.x = this.curve.points[0].x;
+                this.hippo2.y = this.curve.points[0].y;
+                console.log("No hippo points");
+            } else {
+                              
+                this.hippo2.x = 0;
+                this.hippo2.y = 0;
+                
+                console.log("hippo else ");
+            }
+
+            this.followConfig = {
+                from: 0,
+                to: 1,
+                delay: 0,
+                duration: 15000,
+                ease: 'Linear',
+                repeat: -1,
+                yoyo: false,
+                rotateToPath: true,
+                rotationOffset: -90
+            }
+             
+            if (this.hippo2dead == false) {
+                this.hippoWaves--;
+                this.hippo2.startFollow(this.followConfig);
+                this.hippo2.visible = true;
+                this.hippo2Spawned = true;
+                this.spawnDelay = this.spawnDelayTime;
+                this.canSpawnHippo = false;
+            }
+        }
+
+        if ((this.hippoWaves > 0) && (this.canSpawnHippo == true) && (this.hippo3Spawned == false)) {
+                           
+            if (this.curve.points[0]) {
+                this.hippo3.x = this.curve.points[0].x;
+                this.hippo3.y = this.curve.points[0].y;
+                console.log("No hippo points");
+            } else {
+                              
+                this.hippo3.x = 0;
+                this.hippo3.y = 0;
+            }
+
+            this.followConfig = {
+                from: 0,
+                to: 1,
+                delay: 0,
+                duration: 15000,
+                ease: 'Linear',
+                repeat: -1,
+                yoyo: false,
+                rotateToPath: true,
+                rotationOffset: -90
+            }
+             
+            if (this.hippo3dead == false) {
+                this.hippoWaves--;
+                this.hippo3.startFollow(this.followConfig);
+                this.hippo3.visible = true;
+                this.hippo3Spawned = true;
+                this.spawnDelay = this.spawnDelayTime;
+                this.canSpawnHippo = false;
+                this.giraffeDead = false;
+            }
+        }
+
+
+
+        if ((this.canSpawnGiraffe == true) && (this.giraffeSpawned == false)) {
+            // giraffe code
+            
+            if (this.giraffeCurve.points[0]) {
+                this.giraffe.x = this.giraffeCurve.points[0].x;
+                this.giraffe.y = this.giraffeCurve.points[0].y;
+                console.log("No points");
+            } else {
+                              
+                this.giraffe.x = 0;
+                this.giraffe.y = 0;
+                console.log("else ");
+            }
+                
+               /*
+            if (this.curve.points[0]) {
+                this.giraffe.x = this.curve.points[0].x;
+                this.giraffe.y = this.curve.points[0].y;
+                console.log("No points");
+            } else {
+                              
+                this.giraffe.x = 0;
+                this.giraffe.y = 0;
+                console.log("else ");
+            }
+                */
+
+            this.followConfig = {
+                from: 0,
+                to: 1,
+                delay: 0,
+                duration: 5000,
+                ease: 'Linear',
+                repeat: -1,
+                yoyo: false,
+                rotateToPath: true,
+                rotationOffset: -90
+            }
+
+            if ((this.giraffeDead == false) && (this.giraffeSpawned == false)) {
+                console.log("inside");
+                this.giraffe.startFollow(this.followConfig);
+                this.giraffe.visible = true;
+                this.giraffeSpawned = true;
             }
         }
 
@@ -385,13 +727,64 @@ class ArrayBoom extends Phaser.Scene {
         my.text.lose = this.add.bitmapText(300, 300, "rocketSquare", "YOU LOSE! ");
         this.lost = true;
     }
+    youWon() {
+        let my = this.my;
+        // reset all variables
+            // Hippo 1 variables
+        this.hippo1ShootTimer = 10000;
+        this.hippo1ShootTime = 10000;
+        this.hippo1dead = false;
+        this.hippo1Spawned = false;
+
+            // Hippo 2 variables
+        this.hippo2ShootTimer = 13000;
+        this.hippo2ShootTime = 10000;
+        this.hippo2dead = false;
+        this.hippo2Spawned = false;
+
+            // Hippo 3 variables
+        this.hippo3ShootTimer = 15000;
+        this.hippo3ShootTime = 10000;
+        this.hippo3dead = false;
+        this.hippo3Spawned = false;
+
+
+        //this.giraffeDead = false;
+        this.giraffeSpawned = false;
+        
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+        this.canSpawnGiraffe = false;
+        this.canSpawnHippo = true;
+        this.spawnDelayTime = 2000;
+        this.spawnDelay = this.spawnDelayTime;
+
+        //this.lives = 3;
+        this.playerHit = false;
+        this.iFrames = 2000;
+        this.invincibilityTimer = this.iFrames;
+
+
+        
+        this.resetTime = 20000;
+        this.resetTimer = this.resetTime;
+        this.lost = false;
+        this.hippoWaves = 3;
+    }
     updateLives() {
         let my = this.my;
-        my.text.lives.setText("Lives " + this.lives);
-        if (this.lives <= 0) {
-            this.youLost();
+        if (this.playerHit == false) {
+            this.lives--;
+            my.text.lives.setText("Lives " + this.lives);
+            if (this.lives <= 0) {
+                this.youLost();
+            }
+            this.playerHit = true;
+            this.invincibilityTimer = this.iFrames;
         }
     }
+
 
 
 }
